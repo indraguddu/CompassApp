@@ -187,45 +187,12 @@ public class CompassActivity extends AppCompatActivity implements SensorEventLis
 
         mGoogleApiClient.connect();
         CGlobal.getInstance().turnGPSOn1(CompassActivity.this, mGoogleApiClient);
-        getLastKnownLocation();
+       // getLastKnownLocation();
         start();
-
+        txtlatlon.setText(" Lat:: "+Latforotp+" Lon:: "+Lonforotp);
     }
 
-    private Location getLastKnownLocation()
-    {
-        Log.d("Block1","Go_TO_This block");
 
-        Location l=null;
-        LocationManager mLocationManager = (LocationManager)getApplicationContext().getSystemService(LOCATION_SERVICE);
-        List<String> providers = mLocationManager.getProviders(true);
-        Location bestLocation = null;
-        for (String provider : providers) {
-            if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED) {
-                l = mLocationManager.getLastKnownLocation(provider);
-                /// AppData.latititude=l.getLatitude();
-                // AppData.longitude=l.getLongitude();
-
-                //Log.d("latitude","::::"+AppData.latititude+"::::"+AppData.longitude);
-            }
-            if (l == null) {
-                Log.d("Block1","Go_TO_BLOCK2");
-                continue;
-            }
-            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy())
-            {
-                Log.d("Block1","Go_TO_BLOCK1");
-                bestLocation = l;
-                Latforotp =bestLocation.getLatitude();
-                Lonforotp =bestLocation.getLongitude();
-
-                txtlatlon.setText(" Lat:: "+Latforotp+" Lon:: "+Lonforotp);
-
-
-            }
-        }
-        return bestLocation;
-    }
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         if (ActivityCompat.checkSelfPermission(CompassActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
