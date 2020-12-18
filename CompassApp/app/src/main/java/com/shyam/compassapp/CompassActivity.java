@@ -1,6 +1,9 @@
 package com.shyam.compassapp;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
@@ -18,9 +21,16 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.shyam.compassapp.util.CGlobal;
+
 import java.util.List;
 
-public class CompassActivity extends AppCompatActivity implements SensorEventListener {
+public class CompassActivity extends AppCompatActivity implements SensorEventListener, GoogleApiClient.ConnectionCallbacks,  GoogleApiClient.OnConnectionFailedListener, LocationListener {
     ImageView compass_img;
     TextView txt_compass;
     int mAzimuth;
@@ -35,11 +45,27 @@ public class CompassActivity extends AppCompatActivity implements SensorEventLis
     private boolean mLastMagnetometerSet = false;
     public double Latforotp,Lonforotp;
     TextView txtlatlon;
+    LocationRequest mLocationRequest;
+    GoogleApiClient mGoogleApiClient;
 
+    protected void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(60000);
+        mLocationRequest.setFastestInterval(5000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        createLocationRequest();
+
         setContentView(R.layout.activity_compass);
+
+        mGoogleApiClient = new GoogleApiClient.Builder(CompassActivity.this)
+                .addConnectionCallbacks(CompassActivity.this)
+                .addOnConnectionFailedListener(CompassActivity.this)
+                .addApi(LocationServices.API).build();
+        mGoogleApiClient.connect();
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         compass_img = (ImageView) findViewById(R.id.img_compass);
         txt_compass = (TextView) findViewById(R.id.txt_azimuth);
@@ -97,7 +123,7 @@ public class CompassActivity extends AppCompatActivity implements SensorEventLis
 
 
         txt_compass.setText(mAzimuth + "° " + where);
-        getLastKnownLocation();
+
     }
 
 
@@ -157,6 +183,11 @@ public class CompassActivity extends AppCompatActivity implements SensorEventLis
     @Override
     protected void onResume() {
         super.onResume();
+
+
+        mGoogleApiClient.connect();
+        CGlobal.getInstance().turnGPSOn1(CompassActivity.this, mGoogleApiClient);
+        getLastKnownLocation();
         start();
 
     }
@@ -194,5 +225,31 @@ public class CompassActivity extends AppCompatActivity implements SensorEventLis
             }
         }
         return bestLocation;
+    }
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(CompassActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(CompassActivity.this,
+                Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, CompassActivity.this);
+    }
+
+
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
     }
 }
