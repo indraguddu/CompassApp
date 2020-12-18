@@ -1,9 +1,16 @@
 package com.shyam.compassapp.util;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -15,8 +22,13 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 
+import java.util.List;
+
+import static android.content.Context.LOCATION_SERVICE;
+
 public class CGlobal {
     private static CGlobal instance;
+    private static double lat=0.0,lon=0.0;
 
     private CGlobal() {
     }
@@ -37,9 +49,9 @@ public class CGlobal {
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(locationRequest);
 
-        //**************************
-        builder.setAlwaysShow(true); //this is the key ingredient
-        //**************************
+
+        builder.setAlwaysShow(true);
+
 
         PendingResult<LocationSettingsResult> result =
                 LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build());
@@ -49,27 +61,62 @@ public class CGlobal {
                 final Status status = result.getStatus();
                 switch (status.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
-                        // All location settings are satisfied. The client can initialize location
-                        // requests here.
+                        Log.d("Block","1");
+                       // getLastKnownLocation();
+
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        // Location settings are not satisfied. But could be fixed by showing the user
-                        // a dialog.
+                        Log.d("Block","2");
+
                         try {
-                            // Show the dialog by calling startResolutionForResult(),
-                            // and check the result in onActivityResult().
+
                             status.startResolutionForResult(
                                     activity, 1001);
                         } catch (IntentSender.SendIntentException e) {
-                            // Ignore the error.
+
                         }
                         break;
                     case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        // Location settings are not satisfied. However, we have no way to fix the
-                        // settings so we won't show the dialog.
+                        Log.d("Block","3");
+
                         break;
                 }
             }
         });
+    }
+
+    private Location getLastKnownLocation(Context con)
+    {
+        Log.d("Block1","Go_TO_This block");
+
+        Location l=null;
+        LocationManager mLocationManager = (LocationManager)con.getSystemService(LOCATION_SERVICE);
+        List<String> providers = mLocationManager.getProviders(true);
+        Location bestLocation = null;
+        for (String provider : providers) {
+            if(ContextCompat.checkSelfPermission(con, Manifest.permission.ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED) {
+                l = mLocationManager.getLastKnownLocation(provider);
+                /// AppData.latititude=l.getLatitude();
+                // AppData.longitude=l.getLongitude();
+
+                //Log.d("latitude","::::"+AppData.latititude+"::::"+AppData.longitude);
+            }
+            if (l == null) {
+                Log.d("Block1","Go_TO_BLOCK2");
+                continue;
+            }
+            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy())
+            {
+                Log.d("Block1","Go_TO_BLOCK1");
+                bestLocation = l;
+                lat =bestLocation.getLatitude();
+                lon =bestLocation.getLongitude();
+
+
+
+
+            }
+        }
+        return bestLocation;
     }
 }
