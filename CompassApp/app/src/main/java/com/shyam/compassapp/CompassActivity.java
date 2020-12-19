@@ -7,8 +7,11 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -23,9 +26,15 @@ import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.shyam.compassapp.util.CGlobal;
 
 import java.util.List;
@@ -187,11 +196,92 @@ public class CompassActivity extends AppCompatActivity implements SensorEventLis
 
         mGoogleApiClient.connect();
         CGlobal.getInstance().turnGPSOn1(CompassActivity.this, mGoogleApiClient);
-       // getLastKnownLocation();
+        getLastKnownLocation(CompassActivity.this);
         start();
-        txtlatlon.setText(" Lat:: "+Latforotp+" Lon:: "+Lonforotp);
+        //txtlatlon.setText(" Latitude:: "+Latforotp+" Longitude:: "+Lonforotp);
     }
 
+
+
+    public void turnGPSOn1(final Activity activity, GoogleApiClient googleApiClient) {
+
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(30 * 1000);
+        locationRequest.setFastestInterval(5 * 1000);
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest);
+
+
+        builder.setAlwaysShow(true);
+
+
+        PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build());
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(@NonNull LocationSettingsResult result) {
+                final Status status = result.getStatus();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        Log.d("Block","1");
+                        // getLastKnownLocation();
+                       // getLastKnownLocation(CompassActivity.this);
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        Log.d("Block","2");
+
+                        try {
+
+                            status.startResolutionForResult(
+                                    activity, 1001);
+                        } catch (IntentSender.SendIntentException e) {
+
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        Log.d("Block","3");
+
+                        break;
+                }
+            }
+        });
+    }
+    private Location getLastKnownLocation(Context con)
+    {
+        Log.d("Block1","Go_TO_This block");
+
+        Location l=null;
+        LocationManager mLocationManager = (LocationManager)con.getSystemService(LOCATION_SERVICE);
+        List<String> providers = mLocationManager.getProviders(true);
+        Location bestLocation = null;
+        for (String provider : providers) {
+            if(ContextCompat.checkSelfPermission(con, Manifest.permission.ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED) {
+                l = mLocationManager.getLastKnownLocation(provider);
+                /// AppData.latititude=l.getLatitude();
+                // AppData.longitude=l.getLongitude();
+
+                //Log.d("latitude","::::"+AppData.latititude+"::::"+AppData.longitude);
+            }
+            if (l == null) {
+                Log.d("Block1","Go_TO_BLOCK2");
+                continue;
+            }
+            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy())
+            {
+                Log.d("Block1","Go_TO_BLOCK1");
+                bestLocation = l;
+                Latforotp =bestLocation.getLatitude();
+                Lonforotp =bestLocation.getLongitude();
+                txtlatlon.setText(" Latitude:: "+Latforotp+" Longitude:: "+Lonforotp);
+
+
+
+
+            }
+        }
+        return bestLocation;
+    }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {

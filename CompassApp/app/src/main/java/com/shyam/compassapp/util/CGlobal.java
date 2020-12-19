@@ -85,38 +85,5 @@ public class CGlobal {
         });
     }
 
-    private Location getLastKnownLocation(Context con)
-    {
-        Log.d("Block1","Go_TO_This block");
 
-        Location l=null;
-        LocationManager mLocationManager = (LocationManager)con.getSystemService(LOCATION_SERVICE);
-        List<String> providers = mLocationManager.getProviders(true);
-        Location bestLocation = null;
-        for (String provider : providers) {
-            if(ContextCompat.checkSelfPermission(con, Manifest.permission.ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED) {
-                l = mLocationManager.getLastKnownLocation(provider);
-                /// AppData.latititude=l.getLatitude();
-                // AppData.longitude=l.getLongitude();
-
-                //Log.d("latitude","::::"+AppData.latititude+"::::"+AppData.longitude);
-            }
-            if (l == null) {
-                Log.d("Block1","Go_TO_BLOCK2");
-                continue;
-            }
-            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy())
-            {
-                Log.d("Block1","Go_TO_BLOCK1");
-                bestLocation = l;
-                lat =bestLocation.getLatitude();
-                lon =bestLocation.getLongitude();
-
-
-
-
-            }
-        }
-        return bestLocation;
-    }
 }

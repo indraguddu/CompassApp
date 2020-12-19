@@ -1,18 +1,33 @@
 package com.shyam.compassapp;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.shyam.compassapp.util.PermissionUtil;
 
 public class MainActivity extends AppCompatActivity {
@@ -25,10 +40,16 @@ public class MainActivity extends AppCompatActivity {
 
 
     };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+
         setContentView(R.layout.activity_main);
+
+
 
 
         if (Build.VERSION.SDK_INT >= 23) {
@@ -52,21 +73,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             } else {
 
-//                if(isInternetAvailable())
-//                {
-//                    fetchpermission();
-//                }
-//                else{
+
                     gotPermissions();
-                //}
+
+
             }
         } else {
-//            if(isInternetAvailable()) {
-//                fetchpermission();
-//            }
-           // else{
+
                 gotPermissions();
-          //  }
 
         }
     }
@@ -90,7 +104,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
     private void gotPermissions()
     {
         Intent in_log = new Intent(MainActivity.this, CompassActivity.class);
@@ -126,4 +139,13 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(MainActivity.this, INITIAL_PERMS, INITIAL_REQUEST);
         }
     }
+
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
 }
